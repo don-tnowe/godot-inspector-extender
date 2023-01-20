@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bq4fbxahw7l56"]
+
+[ext_resource type="Script" path="res://example/scripts/average_message_enjoyer.gd" id="1_0qji3"]
+[ext_resource type="Texture2D" uid="uid://nctb7w7gwex6" path="res://icon.svg" id="2_kvyo2"]
+
+[resource]
+script = ExtResource("1_0qji3")
+var1 = -30
+var2 = "C;/User name /android"
+var3 = ExtResource("2_kvyo2")
+var4 = [false, null, null]

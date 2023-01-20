@@ -1,0 +1,42 @@
+[gd_scene load_steps=4 format=3 uid="uid://by27pef1gw04u"]
+
+[ext_resource type="Script" path="res://addons/inspector_extender/attributes/inspector_message.gd" id="1_k5js6"]
+[ext_resource type="Texture2D" uid="uid://nctb7w7gwex6" path="res://icon.svg" id="2_0fm6k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ok6kn"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.498039)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Message" type="PanelContainer"]
+offset_right = 300.0
+offset_bottom = 100.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ok6kn")
+script = ExtResource("1_k5js6")
+metadata/_edit_lock_ = true
+
+[node name="Box" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextureRect" type="TextureRect" parent="Box"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_0fm6k")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Box"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+text = "This is a message.
+And its spans two lines."
+autowrap_mode = 2

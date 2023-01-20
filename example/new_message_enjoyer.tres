@@ -1,0 +1,9 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://0xo4d6yqjjwm"]
+
+[ext_resource type="Script" path="res://example/scripts/average_message_enjoyer.gd" id="1_nvr36"]
+
+[resource]
+script = ExtResource("1_nvr36")
+var1 = 1193
+var2 = ""
+var4 = []
