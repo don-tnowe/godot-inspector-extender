@@ -49,7 +49,9 @@ func _on_button_pressed(object, function, inspector_plugin):
 			# not for each and every property.
 			last_props[y] = inspector_plugin.original_edited_object.get(y)
 
-	object.call(function)
+	var expr = Expression.new()
+	expr.parse(function)
+	expr.execute([], object)
 	if object_tool:
 		# In tool script, only one property needs to change to mark object as unsaved.
 		var property = inspector_plugin.all_properties[0]
@@ -62,6 +64,7 @@ func _on_button_pressed(object, function, inspector_plugin):
 				continue
 
 			if object.get(y) != last_props[y]:
+				inspector_plugin.original_edited_object.set(y, object.get(y))
 				emit_changed(y, object.get(y), "", true)
 
 

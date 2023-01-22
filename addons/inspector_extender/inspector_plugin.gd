@@ -120,6 +120,7 @@ func get_suffix(to_find : String, line : String):
 
 
 func get_params(string : String):
+	var unclosed_paren := 0
 	var unclosed_quote := 0
 	var unclosed_brackets := 0
 	var unclosed_stache := 0
@@ -140,18 +141,21 @@ func get_params(string : String):
 			93: unclosed_brackets -= 1
 			123: unclosed_stache += 1
 			125: unclosed_stache -= 1
+			40: unclosed_paren += 1
+			41:
+				unclosed_paren -= 1
+				if unclosed_paren == 0:
+					params.append(string.substr(param_start, i - param_start))
+					return params
+
 			var other:
-				if unclosed_quote == 0 && unclosed_brackets == 0 && unclosed_stache == 0:
+				if unclosed_paren == 1 && unclosed_quote == 0 && unclosed_brackets == 0 && unclosed_stache == 0:
 					match other:
 						44:  # comma
 							if param_started:
 								params.append(string.substr(param_start, i - param_start))
 
 							param_started = false
-
-						41:  # closing paren
-							params.append(string.substr(param_start, i - param_start))
-							return params
 
 						32, 40: pass  # space, opening paren
 						_:
