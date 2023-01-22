@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_0qji3")
-var1 = -30
+var1 = -38
 var2 = "C;/User name /android"
 var3 = ExtResource("2_kvyo2")
 var4 = [false, null, null]

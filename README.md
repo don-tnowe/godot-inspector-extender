@@ -22,11 +22,21 @@ Call `message_func` that returns a message string to display a message. When the
 
 Displays a button group. The `params`, comma-separated, must contain expressions (*like `set_position(position + Vector2(9, 20))`*), preceded by a name (*inside quotation marks `" "`*) and optionally a color code (*like `#009900`*)
 
-To display a red "Reset" button that calls `_reset`, write: ` @@buttons("Reset", #990000, _reset())`.
+To display a red "Reset" button that calls `_reset`, write: `# @@buttons("Reset", #990000, _reset())`.
 
 **Note:** Assignment `=` `+=` `*=` `-=` `/=` not supported, use setter functions instead.
 
 **Note:** Translating nodes in viewport has unpredictable behaviour. Clues on fixes appreciated.
+
+## @@dict_table(`params`)
+
+Displays list of dictionaries as a table. The `params`, comma-separated, must be in format of `key : type`, where `key` is the dictionary's key and `type` is the name of its datatype.
+
+To store a table of dictionaries each containing a number `a`, a 2d-vector `b` and a texture `c`, write `# @@dict_table( a : int, b : Vector2, c : Texture2D)`.
+
+## @@resource_table(`properties`)
+
+Displays list of resources as a table. Optionally, list `properties` to display.
 
 ## More commentributes coming soon.
 

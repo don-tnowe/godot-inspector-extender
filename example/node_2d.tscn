@@ -1,12 +1,35 @@
-[gd_scene load_steps=2 format=3 uid="uid://cavsxdd8nior7"]
+[gd_scene load_steps=5 format=3 uid="uid://cavsxdd8nior7"]
 
 [ext_resource type="Script" path="res://example/scripts/new_gd_script.gd" id="1_nqiyy"]
+[ext_resource type="Texture2D" uid="uid://dh6ya6ugagste" path="res://icon.png" id="2_2axkt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6e37p"]
+atlas = ExtResource("2_2axkt")
+region = Rect2(0.289, 0.14, 0, 0)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u3fkx"]
+region = Rect2(0.095, 0, 0, 0)
 
 [node name="Node2D" type="Node2D"]
 metadata/_edit_lock_ = true
 
 [node name="Node2D" type="Node2D" parent="."]
-position = Vector2(7, 3)
+position = Vector2(9, 20)
 script = ExtResource("1_nqiyy")
-var1 = -67
+var4 = [{
+"a": 1429.0,
+"b": "here"
+}, {
+"a": 46.0,
+"e": ExtResource("2_2axkt")
+}, {
+"a": 2286.0
+}]
+var6 = [SubResource("AtlasTexture_6e37p"), SubResource("AtlasTexture_u3fkx")]
 var3 = []
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0

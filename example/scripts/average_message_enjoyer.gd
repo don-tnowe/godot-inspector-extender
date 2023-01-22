@@ -6,7 +6,7 @@ extends Resource
 # @@message_error(_val2)
 # @@message_warning(_val3)
 @export var var2 := ""
-# @@message_info(_val_resource)
+# @@message_info(_val_resource())
 @export var var3 : Resource
 # @@buttons("Stuff", _inc_var1)
 @export var var4 := []

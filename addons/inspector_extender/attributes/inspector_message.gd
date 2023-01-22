@@ -9,12 +9,14 @@ var icons = {
 	&"message_warning" : _create_atlas(icon_atlas, 64, 0, 64, 64),
 	&"message_error" : _create_atlas(icon_atlas, 0, 64, 64, 64),
 }
-var object_func : Callable
+var object : Object
+var expr := Expression.new()
 
 
 func _initialize(object, property, attribute_name, params, inspector_plugin):
 	set_icon(icons[attribute_name])
-	object_func = Callable(object, params[0])
+	self.object = object
+	expr.parse(params[0])
 
 
 func _ready():
@@ -26,7 +28,10 @@ func _hides_property():
 
 
 func _update_view():
-	var text = object_func.call()
+	var text = expr.execute([], object)
+	if text is Callable:
+		text = text.call()
+
 	if text == null:
 		text = "!!! Message func must return a string!."
 

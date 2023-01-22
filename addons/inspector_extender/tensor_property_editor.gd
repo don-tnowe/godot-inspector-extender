@@ -30,6 +30,40 @@ const component_colors := [
 	"property_color_x", "property_color_y", "property_color_z", "property_color_w",
 	"property_color_x", "property_color_y", "property_color_z", "property_color_w",
 ]
+const type_by_name := {
+	"Vector2" : TYPE_VECTOR2,
+	"Vector3" : TYPE_VECTOR3,
+	"Vector4" : TYPE_VECTOR4,
+	"Vector2i" : TYPE_VECTOR2I,
+	"Vector3i" : TYPE_VECTOR3I,
+	"Vector4i" : TYPE_VECTOR4I,
+	"Rect2" : TYPE_RECT2,
+	"Rect2i" : TYPE_RECT2I,
+	"AABB" : TYPE_AABB,
+	"Plane" : TYPE_PLANE,
+	"Basis" : TYPE_BASIS,
+	"Quaternion" : TYPE_QUATERNION,
+	"Transform2D" : TYPE_TRANSFORM2D,
+	"Transform3D" : TYPE_TRANSFORM3D,
+	"Projection" : TYPE_PROJECTION,
+}
+const default_by_type := {
+	TYPE_VECTOR2 : Vector2(),
+	TYPE_VECTOR3 : Vector3(),
+	TYPE_VECTOR4 : Vector4(),
+	TYPE_VECTOR2I : Vector2i(),
+	TYPE_VECTOR3I : Vector3i(),
+	TYPE_VECTOR4I : Vector4i(),
+	TYPE_RECT2 : Rect2(),
+	TYPE_RECT2I : Rect2i(),
+	TYPE_AABB : AABB(),
+	TYPE_PLANE : Plane(),
+	TYPE_BASIS : Basis(),
+	TYPE_QUATERNION : Quaternion(),
+	TYPE_TRANSFORM2D : Transform2D(),
+	TYPE_TRANSFORM3D : Transform3D(),
+	TYPE_PROJECTION : Projection(),
+}
 
 signal value_changed(new_value)
 
@@ -39,21 +73,25 @@ var float_step := 0.01
 
 
 func _init(value, type, float_step):
-	self.value = value
+	var type_num = type if type is int else type_by_name[type]
+	self.value = value if value != null else default_by_type[type_num]
 	self.float_step = float_step
+	size_flags_stretch_ratio = 2.0
 	add_theme_constant_override("h_separation", 0)
-	call_deferred("init_" + str(type), value)
+	call_deferred("init_" + str(type_num), self.value)
 
 
 func add_field_with_label(component_id, value, is_int = false):
 	var new_editor = EditorSpinSlider.new()
 	new_editor.step = float_step if !is_int else 1.0
 	new_editor.size_flags_horizontal = SIZE_EXPAND_FILL
+	new_editor.size_flags_vertical = SIZE_EXPAND_FILL
 	new_editor.hide_slider = true
 	new_editor.allow_lesser = true
 	new_editor.allow_greater = true
 	new_editor.value = value
 	new_editor.connect("value_changed", _on_field_edited.bind(component_id))
+	new_editor.custom_minimum_size.x = 32.0
 
 	var new_label = Label.new()
 	add_child(new_label)

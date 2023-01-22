@@ -14,12 +14,12 @@ var attribute_scenes := {
 		load(load_dir + "inspector_message.tscn"),
 	StringName(attr_template % "buttons") :
 		load(load_dir + "button_group.gd"),
-	# StringName(attr_template % "resource_table") :
-	# 	load(load_dir + "resource_table.gd"),
-	# StringName(attr_template % "dict_table") :
-	# 	load(load_dir + "dict_table.gd"),
-	# StringName(attr_template % "array_table") :
-	# 	load(load_dir + "array_table.gd"),
+	StringName(attr_template % "dict_table") :
+		load(load_dir + "table.gd"),
+	StringName(attr_template % "resource_table") :
+		load(load_dir + "table.gd"),
+#	StringName(attr_template % "array_table") :
+#		load(load_dir + "table.gd"),
 }
 
 var attribute_data := {}
@@ -85,7 +85,6 @@ func create_editable_copy(object):
 			continue
 
 		new_object.set(x["name"], object[x["name"]])
-#		new_object[x["name"]] = object[x["name"]]
 
 	return new_object
 
@@ -146,7 +145,7 @@ func get_params(string : String):
 				unclosed_paren -= 1
 				if unclosed_paren == 0:
 					params.append(string.substr(param_start, i - param_start))
-					return params
+					return params if params[0] != "(" else []
 
 			var other:
 				if unclosed_paren == 1 && unclosed_quote == 0 && unclosed_brackets == 0 && unclosed_stache == 0:
