@@ -1,3 +1,4 @@
+#@tool
 extends Resource
 
 # @@message_error(_val1)
@@ -7,6 +8,7 @@ extends Resource
 @export var var2 := ""
 # @@message_info(_val_resource)
 @export var var3 : Resource
+# @@buttons("Stuff", _inc_var1)
 @export var var4 := []
 
 
@@ -29,3 +31,7 @@ func _val3():
 func _val_resource():
 	return "" if var3 == null else\
 		"That is a nice %s." % var3.get_class()
+
+
+func _inc_var1():
+	var1 += 10

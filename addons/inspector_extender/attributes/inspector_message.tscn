@@ -15,6 +15,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="Message" type="PanelContainer"]
+self_modulate = Color(0, 0, 0, 1)
 offset_right = 300.0
 offset_bottom = 100.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ok6kn")

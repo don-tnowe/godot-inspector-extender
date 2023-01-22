@@ -12,8 +12,8 @@ var icons = {
 var object_func : Callable
 
 
-func _initialize(object, property, prefix, params, all_attributes):
-	set_icon(icons[prefix])
+func _initialize(object, property, attribute_name, params, inspector_plugin):
+	set_icon(icons[attribute_name])
 	object_func = Callable(object, params[0])
 
 

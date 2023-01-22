@@ -1,10 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://cavsxdd8nior7"]
+[gd_scene load_steps=2 format=3 uid="uid://cavsxdd8nior7"]
 
 [ext_resource type="Script" path="res://example/scripts/new_gd_script.gd" id="1_nqiyy"]
-[ext_resource type="Resource" uid="uid://bq4fbxahw7l56" path="res://example/new_message_enjoyer2.tres" id="2_0naig"]
 
 [node name="Node2D" type="Node2D"]
+metadata/_edit_lock_ = true
 
 [node name="Node2D" type="Node2D" parent="."]
+position = Vector2(7, 3)
 script = ExtResource("1_nqiyy")
-var2 = ExtResource("2_0naig")
+var1 = -67
+var3 = []
