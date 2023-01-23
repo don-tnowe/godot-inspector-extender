@@ -38,6 +38,14 @@ To store a table of dictionaries each containing a number `a`, a 2d-vector `b` a
 
 Displays list of resources as a table. Optionally, list `properties` to display.
 
+## @@scroll_box(`height`)
+
+Puts a table into a scrollable container of maximum size `height`.
+
+## @@show_if(`expression`)
+
+Hides property if `expression` evaluates to `false`.
+
 ## More commentributes coming soon.
 
 #

@@ -20,6 +20,10 @@ var attribute_scenes := {
 		load(load_dir + "table.gd"),
 #	StringName(attr_template % "array_table") :
 #		load(load_dir + "table.gd"),
+	StringName(attr_template % "show_if") :
+		load(load_dir + "show_if.gd"),
+	StringName(attr_template % "scroll_box") :
+		load(load_dir + "scroll_box.gd"),
 }
 
 var attribute_data := {}
@@ -195,7 +199,7 @@ func _on_edited_object_changed(prop = ""):
 
 	for x in attribute_nodes:
 		if is_instance_valid(x):
-			x._update_view()
+			x.call_deferred(&"_update_view")
 
 
 func _on_object_tree_exited():

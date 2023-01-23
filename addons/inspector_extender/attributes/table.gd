@@ -6,19 +6,25 @@ const ArrayIndex := preload("res://addons/inspector_extender/array_index.gd")
 
 var vbox : VBoxContainer
 var grid : GridContainer
+var scrollbox : ScrollContainer
 var redraw_func : Callable
+var for_property : StringName
 
 
 func _initialize(object, property, attribute_name, params, inspector_plugin):
+	for_property = property
 	redraw_func = func(): _initialize(object, property, attribute_name, params, inspector_plugin)
 	for x in get_children(): x.free()
 
 	vbox = VBoxContainer.new()
 	grid = GridContainer.new()
+	scrollbox = ScrollContainer.new()
+	vbox.add_child(scrollbox)
+	scrollbox.add_child(grid)
 	add_child(vbox)
 	set_bottom_editor(vbox)
-	vbox.add_child(grid)
 	vbox.size_flags_horizontal = SIZE_EXPAND_FILL
+	grid.size_flags_horizontal = SIZE_EXPAND_FILL
 
 	var table_rows : Array = []
 	var cols : Array[String] = []
@@ -274,7 +280,46 @@ func _get_array_property_type(object, property):
 			return property_classname.substr(property_classname.rfind(":") + 1)
 
 
-func _ready(): pass
+func _get_scrollbox_minsize():
+	var scrollbox_height := get_viewport_rect().size.y * 0.75
+	var scrollbox_width := 0.0
+
+	var cur_index := get_parent().get_child_count() - 1
+	var cur_sibling : Control
+	while true:
+		cur_sibling = get_parent().get_child(cur_index)
+		if &"for_property" in cur_sibling && for_property == cur_sibling.for_property && &"scrollbox_height" in cur_sibling:
+			if cur_sibling.scrollbox_height > 0:
+				scrollbox_height = cur_sibling.scrollbox_height
+
+			scrollbox_width = cur_sibling.scrollbox_width
+			break
+
+		cur_index -= 1
+		if cur_index == -1:
+			break 
+
+	return Vector2(scrollbox_width, scrollbox_height)
+
+
+func _update_view():
+	var scrollbox_size = _get_scrollbox_minsize()
+	grid.hide()
+	grid.show()
+	if scrollbox_size.y > 0:
+		scrollbox.custom_minimum_size.y = scrollbox_size.y
+		scrollbox.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		if grid.get_minimum_size().y < scrollbox_size.y:
+			scrollbox.custom_minimum_size.y = 0
+			scrollbox.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+
+	else:
+		scrollbox.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+
+
+func _update_property():
+	redraw_func.call()
+	_update_view()
+
+
 func _hides_property(): return true
-func _update_view(): pass
-func _update_property(): redraw_func.call()
