@@ -46,6 +46,11 @@ Puts a table into a scrollable container of maximum size `height`.
 
 Hides property if `expression` evaluates to `false`.
 
+## @@value_dropdown(`expression`)
+
+An option button that evaluates `expression` to get values to choose from. The expression may return an Array or a Dictionary.
+
+
 ## More commentributes coming soon.
 
 #

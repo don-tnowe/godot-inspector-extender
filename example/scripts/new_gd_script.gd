@@ -1,11 +1,14 @@
+@tool
 extends Node2D
 
 # @@message_warning(_negative_message)
 @export var var1 := 0
 @export var var2 : CompressedTexture2D
+# @@value_dropdown(get_children())
+@export var selected_child : Node
 @export_enum("Show resource_table", "Show dict_table", "Don't show") var var_enum := 0
 # @@dict_table(a : int, b : String, c : float, d : Vector2, e : Texture2D)
-# @@scroll_box(128, 64)
+# @@scroll_box(256)
 # @@show_if(var_enum == 1)
 @export var var4 : Array[Dictionary]
 # @@resource_table()

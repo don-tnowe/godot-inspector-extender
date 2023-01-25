@@ -12,14 +12,17 @@ var attribute_scenes := {
 		load(load_dir + "inspector_message.tscn"),
 	StringName(attr_template % "message_error") :
 		load(load_dir + "inspector_message.tscn"),
+
 	StringName(attr_template % "buttons") :
 		load(load_dir + "button_group.gd"),
+
 	StringName(attr_template % "dict_table") :
 		load(load_dir + "table.gd"),
 	StringName(attr_template % "resource_table") :
 		load(load_dir + "table.gd"),
-#	StringName(attr_template % "array_table") :
-#		load(load_dir + "table.gd"),
+
+	StringName(attr_template % "value_dropdown") :
+		load(load_dir + "option_dropdown.gd"),
 	StringName(attr_template % "show_if") :
 		load(load_dir + "show_if.gd"),
 	StringName(attr_template % "scroll_box") :
