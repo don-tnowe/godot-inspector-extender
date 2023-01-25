@@ -50,6 +50,10 @@ Hides property if `expression` evaluates to `false`.
 
 An option button that evaluates `expression` to get values to choose from. The expression may return an Array or a Dictionary.
 
+## @@tabs()
+
+Displays enum as tabs. Can be used to speed up enum switching, or with `@@show_if` to only show a group when enum is of a specific value.
+
 
 ## More commentributes coming soon.
 

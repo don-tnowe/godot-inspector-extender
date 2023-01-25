@@ -23,6 +23,8 @@ var attribute_scenes := {
 
 	StringName(attr_template % "value_dropdown") :
 		load(load_dir + "option_dropdown.gd"),
+	StringName(attr_template % "tabs") :
+		load(load_dir + "tabs.gd"),
 	StringName(attr_template % "show_if") :
 		load(load_dir + "show_if.gd"),
 	StringName(attr_template % "scroll_box") :
@@ -98,6 +100,7 @@ func create_editable_copy(object):
 
 func get_suffix(to_find : String, line : String):
 	var unclosed_quote := 0
+	var unclosed_quote_char := -1
 	var unclosed_paren := 0
 	var unclosed_brackets := 0
 	var unclosed_stache := 0
@@ -106,7 +109,14 @@ func get_suffix(to_find : String, line : String):
 
 	for i in line.length():
 		match line.unicode_at(i):
-			34, 39: unclosed_quote = 1 - unclosed_quote
+			34, 39:
+				if unclosed_quote == 0:
+					unclosed_quote = 1
+					unclosed_quote_char = line.unicode_at(i)
+
+				elif unclosed_quote_char == line.unicode_at(i):
+					unclosed_quote = 0
+
 			40: unclosed_paren += 1
 			41: unclosed_paren -= 1
 			91: unclosed_brackets += 1
@@ -114,7 +124,11 @@ func get_suffix(to_find : String, line : String):
 			123: unclosed_stache += 1
 			125: unclosed_stache -= 1
 			var other:
-				if unclosed_quote == 0 && unclosed_paren == 0 && unclosed_brackets == 0 && unclosed_stache == 0 && other == to_find.unicode_at(string_chars_matched):
+				if (
+					unclosed_quote == 0 && unclosed_paren == 0
+					&& unclosed_brackets == 0 && unclosed_stache == 0
+					&& other == to_find.unicode_at(string_chars_matched)
+				):
 					string_chars_matched += 1
 					if string_chars_matched == to_find.length():
 						return line.substr(i + 1, line.find(" ", i + to_find.length()) - i - 1)

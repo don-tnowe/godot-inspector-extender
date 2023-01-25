@@ -6,6 +6,7 @@ extends Node2D
 @export var var2 : CompressedTexture2D
 # @@value_dropdown(get_children())
 @export var selected_child : Node
+# @@tabs()
 @export_enum("Show resource_table", "Show dict_table", "Don't show") var var_enum := 0
 # @@dict_table(a : int, b : String, c : float, d : Vector2, e : Texture2D)
 # @@scroll_box(256)

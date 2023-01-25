@@ -20,8 +20,7 @@ metadata/_edit_vertical_guides_ = [-84.0]
 [node name="Node2D" type="Node2D" parent="." node_paths=PackedStringArray("selected_child")]
 position = Vector2(9, 20)
 script = ExtResource("1_nqiyy")
-selected_child = NodePath("Node")
-var_enum = 1
+selected_child = NodePath("Node313531")
 var4 = [{
 "a": 392.0,
 "b": "eett",
