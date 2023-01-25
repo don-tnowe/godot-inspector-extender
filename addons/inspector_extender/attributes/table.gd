@@ -10,6 +10,8 @@ var scrollbox : ScrollContainer
 var redraw_func : Callable
 var for_property : StringName
 
+var changing := false
+
 
 func _initialize(object, property, attribute_name, params, inspector_plugin):
 	for_property = property
@@ -87,7 +89,9 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 			var pos = _get_cell_pos(editor)
 			var object_list = object[property]
 			object_list[pos.y][cols[pos.x]] = value
+			changing = true
 			emit_changed(property, object_list, "", true)
+			set_deferred(&"changing", false)
 
 		move_callback = func(from_node, to_node):
 			var from = _get_cell_pos(from_node).y
@@ -107,33 +111,28 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 	_create_table(table_rows, cols, dtypes, update_callback, remove_callback, move_callback)
 
 	var add_button := Button.new()
+	var add_row_func = func (new_value):
+		var new_row = []
+		var row_count = object[property].size()
+		new_row.resize(dtypes.size())
+
+		_create_row(new_row, dtypes, update_callback, remove_callback, move_callback)
+		object[property].append(new_value)
+		emit_changed(property, object[property], "", false)
+
 	match attribute_name:
 		&"dict_table":
-			add_button.pressed.connect(func():
-				var new_row = []
-				var row_count = object[property].size()
-				new_row.resize(dtypes.size())
-				_create_row(new_row, dtypes, update_callback, remove_callback, move_callback)
-				object[property].append({})
-				emit_changed(property, object[property], "", false)
-			)
-		&"resource_table":
-			add_button.pressed.connect(func():
-				var new_row = []
-				var row_count = object[property].size()
-				var property_classname := "Resource"
+			add_button.pressed.connect(add_row_func.bind({}))
 
-				new_row.resize(dtypes.size())
-				_create_row(new_row, dtypes, update_callback, remove_callback, move_callback)
-				object[property].append(row_resource.duplicate())
-				emit_changed(property, object[property], "", false)
-			)
+		&"resource_table":
+			add_button.pressed.connect(add_row_func.bind(row_resource.duplicate()))
 
 	add_button.size_flags_horizontal = SIZE_SHRINK_CENTER
 	add_button.text = "Add Row"
 	add_button.custom_minimum_size.x = 192.0
-	add_button.icon = get_theme_icon(&"Add", &"EditorIcons")
 	vbox.add_child(add_button)
+	if !is_inside_tree(): await ready
+	add_button.icon = get_theme_icon(&"Add", &"EditorIcons")
 
 
 func _create_table(
@@ -167,9 +166,11 @@ func _create_row(values, dtypes, update_callback, remove_callback, move_callback
 		grid.add_child(ed)
 
 	var del_button = Button.new()
-	del_button.text = "x"
 	del_button.pressed.connect(remove_callback.bind(del_button))
 	grid.add_child(del_button)
+
+	if !is_inside_tree(): await ready
+	del_button.icon = get_theme_icon(&"Remove", &"EditorIcons")
 
 
 func _remove_row(index):
@@ -244,17 +245,16 @@ func _get_new_property_editor(initial_value, dtype, update_callback):
 
 			return new_editor
 
-		var other_:
-			var other = other_
-			if other is int && other == TYPE_OBJECT:
-				other = "Resource"
+		_:
+			if dtype is int && dtype == TYPE_OBJECT:
+				dtype = "Resource"
 
-			if other is String && ClassDB.class_exists(other):
-				if ClassDB.is_parent_class(other, &"Node"):
+			if dtype is String && ClassDB.class_exists(dtype):
+				if ClassDB.is_parent_class(dtype, &"Node"):
 					return _get_new_property_editor(initial_value, "NodePath", update_callback)
 
 				var new_editor = EditorResourcePicker.new()
-				new_editor.base_type = other
+				new_editor.base_type = dtype
 				new_editor.resource_changed.connect(func (x):
 					update_callback.call(x, new_editor)
 				)
@@ -303,6 +303,8 @@ func _get_scrollbox_minsize():
 
 
 func _update_view():
+	if changing: return
+
 	var scrollbox_size = _get_scrollbox_minsize()
 	grid.hide()
 	grid.show()
