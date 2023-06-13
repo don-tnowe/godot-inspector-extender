@@ -3,4 +3,4 @@
 # When downloading from the Asset Library, only include the addons folder.
 /** export-ignore
 /README.md !export-ignore
-/addons !export-ignore
+/addons/** !export-ignore
