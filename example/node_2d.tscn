@@ -1,17 +1,13 @@
-[gd_scene load_steps=6 format=3 uid="uid://cavsxdd8nior7"]
+[gd_scene load_steps=5 format=3 uid="uid://cavsxdd8nior7"]
 
 [ext_resource type="Script" path="res://example/scripts/new_gd_script.gd" id="1_nqiyy"]
-[ext_resource type="Texture2D" uid="uid://dh6ya6ugagste" path="res://icon.png" id="2_2axkt"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_myqvj"]
-atlas = ExtResource("2_2axkt")
-region = Rect2(0.02, 0, 0, 0)
+[sub_resource type="AtlasTexture" id="AtlasTexture_08be5"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_oa68e"]
-atlas = ExtResource("2_2axkt")
-region = Rect2(0.014, 0, 0, 0)
+[sub_resource type="AtlasTexture" id="AtlasTexture_smjww"]
+region = Rect2(0, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_xalmb"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_tixkk"]
 
 [node name="Node2D" type="Node2D"]
 metadata/_edit_lock_ = true
@@ -20,22 +16,32 @@ metadata/_edit_vertical_guides_ = [-84.0]
 [node name="Node2D" type="Node2D" parent="." node_paths=PackedStringArray("selected_child")]
 position = Vector2(9, 20)
 script = ExtResource("1_nqiyy")
-selected_child = NodePath("Node313531")
-var4 = [{
-"a": 392.0,
-"b": "eett",
-"c": 351.509,
-"d": Vector2(0.101, 0)
+selected_child = NodePath("Node2")
+var_enum = 1
+var4 = Array[Dictionary]([{
+"a": 185.0,
+"b": "",
+"c": 0.0,
+"d": Vector2(0, 0),
+"e": SubResource("AtlasTexture_08be5")
 }, {
-"a": 38.0
+"a": 0,
+"b": "",
+"c": 0.25,
+"d": Vector2(0, 0),
+"e": null
 }, {
-"c": 0.005
-}, {
-"a": 86.0,
-"c": 0.006
-}, {}]
-var6 = [SubResource("AtlasTexture_myqvj"), SubResource("AtlasTexture_oa68e"), SubResource("AtlasTexture_xalmb")]
-var3 = []
+"a": 0,
+"b": "",
+"c": 0.0,
+"d": Vector2(0.3, 0),
+"e": null
+}])
+var6 = Array[AtlasTexture]([SubResource("AtlasTexture_smjww")])
+item_key = Array[String](["first", "second"])
+item_yes = Array[bool]([false, true])
+item_obj = Array[AtlasTexture]([SubResource("AtlasTexture_tixkk"), null])
+metadata/_editor_prop_ptr_selected_child = NodePath("Node2")
 
 [node name="Node" type="Node" parent="Node2D"]
 
@@ -48,5 +54,7 @@ var3 = []
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 101.0
+offset_top = -10.0
+offset_right = 141.0
+offset_bottom = 30.0

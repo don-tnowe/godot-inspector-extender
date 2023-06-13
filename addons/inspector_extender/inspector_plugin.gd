@@ -20,6 +20,10 @@ var attribute_scenes := {
 		load(load_dir + "table.gd"),
 	StringName(attr_template % "resource_table") :
 		load(load_dir + "table.gd"),
+	StringName(attr_template % "array_table") :
+		load(load_dir + "table.gd"),
+	StringName(attr_template % "multi_array_table") :
+		load(load_dir + "table.gd"),
 
 	StringName(attr_template % "value_dropdown") :
 		load(load_dir + "option_dropdown.gd"),
@@ -34,6 +38,7 @@ var attribute_scenes := {
 var attribute_data := {}
 var attribute_nodes := []
 var all_properties := []
+var hidden_properties := {}
 var original_edited_object : Object
 var edited_object : Object
 
@@ -68,6 +73,7 @@ func _parse_begin(object):
 	attribute_data.clear()
 	attribute_nodes.clear()
 	all_properties.clear()
+	hidden_properties.clear()
 
 	for x in source.split("\n"):
 		if x == "": continue
@@ -198,16 +204,26 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 		new_node._initialize(edited_object, name, attr_name, x[1], self)
 		attribute_nodes.append(new_node)
 		if new_node.has_method("_hides_property"):
-			prop_hidden = prop_hidden || new_node._hides_property()
+			var hides = new_node._hides_property()
+			if hides is bool:
+				prop_hidden = prop_hidden || hides
+
+			else:
+				for y in hides:
+					hidden_properties[y] = true
 
 		if new_node is EditorProperty:
-			add_property_editor(name, new_node)
+			if new_node.has_method(&"_edits_properties"):
+				add_property_editor_for_multiple_properties("", new_node._edits_properties(edited_object, name, attr_name, x[1]), new_node)
+
+			else:
+				add_property_editor_for_multiple_properties("", [name], new_node)
 
 		else:
 			add_custom_control(new_node)
 
 	_on_edited_object_changed()
-	return prop_hidden
+	return prop_hidden || hidden_properties.has(name)
 
 
 func _on_edited_object_changed(prop = ""):

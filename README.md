@@ -14,6 +14,8 @@ Comments must be placed any number of lines before the property they must be app
 
 Supported commentributes:
 
+# Extras
+
 ## @@message(`message_func`), @@message_warning(`message_func`), @@message_error(`message_func`)
 
 Call `message_func` that returns a message string to display a message. When the function returns and empty string, no message is displayed.
@@ -28,15 +30,31 @@ To display a red "Reset" button that calls `_reset`, write: `# @@buttons("Reset"
 
 **Note:** Translating nodes in viewport has unpredictable behaviour. Clues on fixes appreciated.
 
-## @@dict_table(`params`)
+# Tables
 
-Displays list of dictionaries as a table. The `params`, comma-separated, must be in format of `key : type`, where `key` is the dictionary's key and `type` is the name of its datatype.
+**Note:** if array is empty, properties will be pinned. This is done automatically and required for it to work properly.
+
+## @@resource_table(`properties...`)
+
+Displays list of resources as a table. Optionally, list `properties` to display.
+
+## @@dict_table(`properties...`)
+
+Displays list of dictionaries as a table. The `properties`, comma-separated, must be in format of `key : type`, where `key` is the dictionary's key and `type` is the name of its datatype.
 
 To store a table of dictionaries each containing a number `a`, a 2d-vector `b` and a texture `c`, write `# @@dict_table( a : int, b : Vector2, c : Texture2D)`.
 
-## @@resource_table(`properties`)
+## @@array_table(`properties...`)
 
-Displays list of resources as a table. Optionally, list `properties` to display.
+Displays list of arrays as a table. Similar to `# @@dict_table`.
+
+## @@multi_array_table(`properties_to_show...`)
+
+Displays several typed arrays as a table. `properties_to_show` is a comma-separated list of properties that store arrays.
+
+Arrays must have a type hint (`var array : Array[float]`, not `var array : Array`)
+
+# Other
 
 ## @@scroll_box(`height`)
 
@@ -55,7 +73,7 @@ An option button that evaluates `expression` to get values to choose from. The e
 Displays enum as tabs. Can be used to speed up enum switching, or with `@@show_if` to only show a group when enum is of a specific value.
 
 
-## More commentributes coming soon.
+# More commentributes coming soon.
 
 #
 Made by Don Tnowe in 2023.

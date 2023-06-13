@@ -31,6 +31,13 @@ const component_colors := [
 	"property_color_x", "property_color_y", "property_color_z", "property_color_w",
 ]
 const type_by_name := {
+	"bool" : TYPE_BOOL,
+	"int" : TYPE_INT,
+	"float" : TYPE_FLOAT,
+	"String" : TYPE_STRING,
+	"StringName" : TYPE_STRING_NAME,
+	"NodePath" : TYPE_NODE_PATH,
+
 	"Vector2" : TYPE_VECTOR2,
 	"Vector3" : TYPE_VECTOR3,
 	"Vector4" : TYPE_VECTOR4,
@@ -48,6 +55,13 @@ const type_by_name := {
 	"Projection" : TYPE_PROJECTION,
 }
 const default_by_type := {
+	TYPE_BOOL : false,
+	TYPE_INT : 0,
+	TYPE_FLOAT : 0.0,
+	TYPE_STRING : "",
+	TYPE_STRING_NAME : &"",
+	TYPE_NODE_PATH : NodePath(),
+
 	TYPE_VECTOR2 : Vector2(),
 	TYPE_VECTOR3 : Vector3(),
 	TYPE_VECTOR4 : Vector4(),
