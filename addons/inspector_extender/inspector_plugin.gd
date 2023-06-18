@@ -58,9 +58,15 @@ func _can_handle(object):
 
 func _parse_begin(object):
 	original_edited_object = object
-	if is_instance_valid(edited_object) && edited_object is Node && !edited_object.is_inside_tree():
+	if (
+		is_instance_valid(edited_object)
+		&& edited_object is Node
+		&& !edited_object.is_inside_tree()
+		&& !edited_object.get_script().is_tool()
+	):
 		edited_object.free()
 
+	# For params that call methods, create a new object in tool mode (or methods won't be there)
 	if !object.get_script().is_tool():
 		object = create_editable_copy(object)
 
@@ -236,4 +242,5 @@ func _on_edited_object_changed(prop = ""):
 
 
 func _on_object_tree_exited():
-	edited_object.free()
+	if !edited_object.get_script().is_tool():
+		edited_object.free()
