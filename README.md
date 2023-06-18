@@ -4,11 +4,11 @@ A plugin for Godot 4 to extend the Inspector using just comments above propertie
 
 It allows the user to do this:
 
-![](./images/screen0.png)
-
-...with just this.
-
 ![](./images/screen1.png)
+
+...with just a bunch of comments, like this:
+
+![](./images/screen0.png)
 
 Comments must be placed any number of lines before the property they must be applied to (*place anything in between, just not other properties*)
 
