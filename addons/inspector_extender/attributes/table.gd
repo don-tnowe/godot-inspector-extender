@@ -142,7 +142,13 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 		if attribute_name == &"resource_table":
 			var prop_types = {}
 			var prop_hints = {}
-			row_resource = ClassDB.instantiate(_get_array_property_type(object, property))
+			var array_class_name : StringName = _get_array_property_type(object, property)
+			if ClassDB.can_instantiate(array_class_name):
+				row_resource = ClassDB.instantiate(array_class_name)
+
+			else:
+				row_resource = _instantiate_custom_class(array_class_name)
+
 			for x in row_resource.get_property_list():
 				if x["usage"] & PROPERTY_USAGE_EDITOR != 0:
 					prop_types[x["name"]] = x["type"]
@@ -387,7 +393,7 @@ func _get_new_property_editor(initial_value, dtype, update_callback):
 			if dtype is int && dtype == TYPE_OBJECT:
 				dtype = "Resource"
 
-			if dtype is String && ClassDB.class_exists(dtype):
+			if dtype is String && (ClassDB.class_exists(dtype) || _instantiate_custom_class(dtype)):
 				if ClassDB.is_parent_class(dtype, &"Node"):
 					return _get_new_property_editor(initial_value, "NodePath", update_callback)
 
@@ -416,6 +422,15 @@ func _get_array_property_type(object, property):
 		if x["name"] == property:
 			property_classname = x["hint_string"]
 			return property_classname.substr(property_classname.rfind(":") + 1)
+
+
+func _instantiate_custom_class(c : StringName) -> Object:
+	var arr := ProjectSettings.get_global_class_list()
+	for x in arr:
+		if x[&"class"] == c:
+			return load(x[&"path"]).new()
+
+	return null
 
 
 func _get_scrollbox_minsize():
