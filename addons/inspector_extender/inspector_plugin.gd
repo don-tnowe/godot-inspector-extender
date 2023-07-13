@@ -143,7 +143,10 @@ func get_suffix(to_find : String, line : String):
 				):
 					string_chars_matched += 1
 					if string_chars_matched == to_find.length():
-						return line.substr(i + 1, line.find(" ", i + to_find.length()) - i - 1)
+						var result = line.substr(i + 1, line.find(" ", i + to_find.length()) - i - 1)
+						if result.ends_with(":"):
+							result = result.trim_suffix(":")
+						return result
 
 				else:
 					string_chars_matched = 0
