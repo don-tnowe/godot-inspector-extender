@@ -1,4 +1,5 @@
 @tool
+class_name TableAttribute
 extends EditorProperty
 
 const TensorPropertyEditor := preload("res://addons/inspector_extender/tensor_property_editor.gd")
@@ -19,211 +20,8 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 	for x in get_children(): x.free()
 	_create_containers()
 
-	var table_rows : Array = []
-	var cols : Array[String] = []
-	var dtypes : Array = []
 
-	var update_callback : Callable
-	var move_callback : Callable
-	var remove_callback : Callable
-	var add_callback : Callable
-
-	var row_resource
-
-	if attribute_name == &"multi_array_table":
-		var default_by_type = TensorPropertyEditor.default_by_type
-		var type_by_name = TensorPropertyEditor.type_by_name
-		var row_count := 0
-		var col_values := []
-		var col_defaults := []
-
-		for_properties = params.map(func(x): return StringName(x))
-		cols.append_array(for_properties)
-		var prefix : String = for_properties[0]
-		col_values.resize(cols.size())
-		col_defaults.resize(cols.size())
-		dtypes.resize(cols.size())
-		for i in cols.size():
-			col_values[i] = object[cols[i]]
-
-			if col_values[i].size() == 0:
-				object[cols[i]] = object[cols[i]]
-				emit_changed(for_properties[i], col_values[i], "", false)
-
-			if col_values[i].size() > row_count:
-				row_count = col_values[i].size()
-
-			for j in min(cols[i].length(), prefix.length()):
-				if prefix.unicode_at(j) != cols[i].unicode_at(j):
-					prefix = prefix.left(j)
-					break
-
-		label = prefix.capitalize()
-		for x in object.get_property_list():
-			var col_idx = for_properties.find(x["name"])
-			if col_idx != -1:
-				var split = x["hint_string"].split(":")
-				dtypes[col_idx] = split[1]
-
-		for i in cols.size():
-			cols[i] = cols[i].substr(prefix.length())
-			if col_values[i].size() < row_count:
-				col_values[i].resize(row_count)
-				for j in col_values[i].size():
-					if col_values[i][j] == null:
-						col_values[i][j] = default_by_type.get(type_by_name.get(dtypes[i], dtypes[i]), null)
-
-				emit_changed(for_properties[i], col_values[i], "", false)
-
-		table_rows.resize(row_count)
-		for i in row_count:
-			var cur_row = []
-			cur_row.resize(cols.size())
-			for j in cols.size():
-				cur_row[j] = col_values[j][i]
-
-			table_rows[i] = cur_row
-
-		update_callback = func(value, editor):
-			var pos := _get_cell_pos(editor)
-			if !is_inside_tree(): pos.x += 1
-			col_values[pos.x][pos.y] = value
-			changing = true
-			emit_changed(for_properties[pos.x], col_values[pos.x], "", true)
-			set_deferred(&"changing", false)
-
-		move_callback = func(from_node, to_node):
-			var from := _get_cell_pos(from_node).y
-			var to := _get_cell_pos(to_node).y
-			_move_row(from, to)
-			for x in for_properties:
-				var array_in_object = object[x]
-				array_in_object.insert(to, array_in_object.pop_at(from))
-				emit_changed(x, array_in_object, "", false)
-
-		remove_callback = func(button):
-			var row := _get_cell_pos(button).y
-			_remove_row(row)
-			for x in for_properties:
-				var array_in_object = object[x]
-				array_in_object.remove_at(row)
-				emit_changed(x, array_in_object, "", false)
-
-		add_callback = func(new_value):
-			var new_row := []
-			new_row.resize(dtypes.size())
-			_create_row(new_row, dtypes, update_callback, remove_callback, move_callback)
-			for i in for_properties.size():
-				var array_in_object = object[for_properties[i]]
-				if array_in_object.size() > 0:
-					array_in_object.append(array_in_object[-1])
-
-				else:
-					array_in_object.append(default_by_type.get(type_by_name.get(dtypes[i], dtypes[i]), null))
-
-				emit_changed(for_properties[i], array_in_object, "", false)
-
-	if attribute_name == &"dict_table" || attribute_name == &"resource_table" || attribute_name == &"array_table":
-		if object[property] == null:
-			object[property] = []
-
-		var current
-		if attribute_name == &"dict_table" || attribute_name == &"array_table":
-			row_resource = {}
-			for i in params.size():
-				current = params[i].split(":")
-				cols.append(current[0].trim_suffix(" "))
-				dtypes.append(current[1].trim_prefix(" "))
-				row_resource[cols[i]] = TensorPropertyEditor.default_by_type.get(
-					TensorPropertyEditor.type_by_name.get(dtypes[i], dtypes[i]),
-					null
-				)
-
-		if attribute_name == &"resource_table":
-			var prop_types = {}
-			var prop_hints = {}
-			var array_class_name : StringName = _get_array_property_type(object, property)
-			if ClassDB.can_instantiate(array_class_name):
-				row_resource = ClassDB.instantiate(array_class_name)
-
-			else:
-				row_resource = _instantiate_custom_class(array_class_name)
-
-			for x in row_resource.get_property_list():
-				if x["usage"] & PROPERTY_USAGE_EDITOR != 0:
-					prop_types[x["name"]] = x["type"]
-					prop_hints[x["name"]] = x["hint_string"]
-
-			if params.size() > 0:
-				for x in params:
-					cols.append(x.trim_suffix(" ").trim_prefix(" "))
-					dtypes.append(prop_types[cols[-1]])
-
-			else:
-				for k in prop_types:
-					if (
-						k == &"resource_path" || k == &"resource_name"
-						|| k == &"resource_local_to_scene" || k == &"script"
-					):
-						continue
-
-					cols.append(k)
-					dtypes.append(prop_types[k])
-					if dtypes[-1] == TYPE_OBJECT:
-						dtypes[-1] = prop_hints[k]
-
-		var list = object[property]
-		for i in list.size():
-			current = []
-			current.resize(cols.size())
-			if attribute_name == &"array_table":
-				list[i].resize(cols.size())
-				for j in cols.size():
-					current[j] = list[i][j]
-
-			else:
-				for j in cols.size():
-					current[j] = list[i].get(cols[j])
-
-			table_rows.append(current)
-
-		update_callback = func(value, editor):
-			var pos = _get_cell_pos(editor)
-			var object_list = object[property]
-			if attribute_name == &"array_table":
-				object_list[pos.y][pos.x] = value
-
-			else:
-				object_list[pos.y][cols[pos.x]] = value
-
-			changing = true
-			emit_changed(property, object_list, "", true)
-			set_deferred(&"changing", false)
-
-		move_callback = func(from_node, to_node):
-			var from = _get_cell_pos(from_node).y
-			var to = _get_cell_pos(to_node).y
-			var object_list = object[property]
-			_move_row(from, to)
-			object_list.insert(to, object_list.pop_at(from))
-			emit_changed(property, object_list, "", false)
-
-		remove_callback = func(button):
-			var row = _get_cell_pos(button).y
-			var object_list = object[property]
-			_remove_row(row)
-			object_list.remove_at(row)
-			emit_changed(property, object_list, "", false)
-
-		add_callback = func(new_value):
-			var new_row = []
-			var row_count = object[property].size()
-			new_row.resize(dtypes.size())
-
-			_create_row(new_row, dtypes, update_callback, remove_callback, move_callback)
-			object[property].append(new_value)
-			emit_changed(property, object[property], "", false)
-
+func _update_pinned_properties(object):
 	var pinned_props = []
 	if &"metadata/_edit_pinned_properties_" in object:
 		pinned_props = object.get(&"metadata/_edit_pinned_properties_")
@@ -235,9 +33,6 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 
 	if pinned_props_init_size != pinned_props.size():
 		emit_changed(&"metadata/_edit_pinned_properties_", pinned_props, "", false)
-
-	_create_table(table_rows, cols, dtypes, update_callback, remove_callback, move_callback)
-	_create_add_button(attribute_name, add_callback, row_resource)
 
 
 func _create_containers():
@@ -251,23 +46,9 @@ func _create_containers():
 	vbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	grid.size_flags_horizontal = SIZE_EXPAND_FILL
 
-
-func _create_add_button(attribute_name, add_callback, row_resource = null):
+func _create_add_button_new(add_callback : Callable, arguments : Array = []):
 	var add_button := Button.new()
-
-	match attribute_name:
-		&"dict_table":
-			add_button.pressed.connect(add_callback.bind(row_resource.duplicate()))
-
-		&"array_table":
-			add_button.pressed.connect(add_callback.bind([]))
-
-		&"resource_table":
-			add_button.pressed.connect(add_callback.bind(row_resource.duplicate()))
-
-		&"multi_array_table":
-			add_button.pressed.connect(add_callback.bind([]))
-
+	add_button.pressed.connect(add_callback.bindv(arguments))
 	add_button.size_flags_horizontal = SIZE_SHRINK_CENTER
 	add_button.text = "Add Row"
 	add_button.custom_minimum_size.x = 192.0

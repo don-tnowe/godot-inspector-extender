@@ -1,39 +1,6 @@
 extends EditorInspectorPlugin
 
-const load_dir := "res://addons/inspector_extender/attributes/"
-const attr_template := "# @@%s("
-
-var attribute_scenes := {
-	StringName(attr_template % "message") :
-		load(load_dir + "inspector_message.tscn"),
-	StringName(attr_template % "message_info") :
-		load(load_dir + "inspector_message.tscn"),
-	StringName(attr_template % "message_warning") :
-		load(load_dir + "inspector_message.tscn"),
-	StringName(attr_template % "message_error") :
-		load(load_dir + "inspector_message.tscn"),
-
-	StringName(attr_template % "buttons") :
-		load(load_dir + "button_group.gd"),
-
-	StringName(attr_template % "dict_table") :
-		load(load_dir + "table.gd"),
-	StringName(attr_template % "resource_table") :
-		load(load_dir + "table.gd"),
-	StringName(attr_template % "array_table") :
-		load(load_dir + "table.gd"),
-	StringName(attr_template % "multi_array_table") :
-		load(load_dir + "table.gd"),
-
-	StringName(attr_template % "value_dropdown") :
-		load(load_dir + "option_dropdown.gd"),
-	StringName(attr_template % "tabs") :
-		load(load_dir + "tabs.gd"),
-	StringName(attr_template % "show_if") :
-		load(load_dir + "show_if.gd"),
-	StringName(attr_template % "scroll_box") :
-		load(load_dir + "scroll_box.gd"),
-}
+var attribute_scenes := {}
 
 var attribute_data := {}
 var attribute_nodes := []
@@ -41,6 +8,9 @@ var all_properties := []
 var hidden_properties := {}
 var original_edited_object : Object
 var edited_object : Object
+var delayed_attribute : Object = null
+var delayed_att_params = null
+var attr_config = ConfigFile.new()
 
 var plugin : EditorPlugin
 var inspector : EditorInspector
@@ -73,27 +43,47 @@ func _parse_begin(object):
 	var source = object.get_script().source_code
 	edited_object = object
 
-	var parse_found_prop := ""
 	var parse_found_comments := []
-	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
 	attribute_data.clear()
 	attribute_nodes.clear()
 	all_properties.clear()
 	hidden_properties.clear()
 
-	for x in source.split("\n"):
-		if x == "": continue
-		if !x.unicode_at(0) in illegal_starts && ("@export " in x || "@export_" in x):
-			var prop_name = get_suffix(" var ", x)
-			if prop_name == "": continue
+	# load config file to get available attribute names
+	if attr_config.get_sections().size() == 0:
+		attr_config.load("res://addons/inspector_extender/attributes/attributes.cfg")
+	var template = attr_config.get_value("all_attributes", "template")
+	var attr_base_path = attr_config.get_value("all_attributes", "base_resource_path")
+	
+	for attr_key in attr_config.get_sections():
+		if attr_key == "all_attributes":
+			continue
+		var key_path = attr_config.get_value(attr_key, "resource_path")
+		attribute_scenes[StringName(template % attr_key)] = load(attr_base_path + key_path)
+	
+	# parse all source code lines
+	for line in source.split("\n"):
+		line = line.strip_edges()
+		# ignore blank lines
+		if line.is_empty(): continue
+		
+		# assign detected attributes to variable
+		if parse_found_comments.size() > 0 \
+		and (line.begins_with("@export ") || line.begins_with("@export_")):
+			var prop_name = get_suffix(" var ", line)
+			if prop_name.is_empty(): continue
 
-			parse_found_prop = prop_name
 			attribute_data[prop_name] = parse_found_comments
 			parse_found_comments = []
+			# continue to avoid attempt at parsing comments
+			continue
 
-		for k in attribute_scenes:
-			if x.begins_with(k):
-				parse_found_comments.append([k, get_params(x.substr(x.find("(")))])
+		# check if comment contains an attribute
+		if line.unicode_at(0) == "#".unicode_at(0):
+			for attr_key in attr_config.get_sections():
+				var k = template % attr_key
+				if line.begins_with(k):
+					parse_found_comments.append([k, get_params(line.substr(line.find("(")))])
 
 
 func create_editable_copy(object):
@@ -203,36 +193,66 @@ func get_params(string : String):
 
 func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wide):
 	all_properties.append(name)
-	if !attribute_data.has(name): return false
+	
+	if !attribute_data.has(name): return hidden_properties.has(name)
 	var prop_hidden := false
+	var constructed_nodes = []
+	var show_if_node : ShowIfAttribute = null
 	for x in attribute_data[name]:
 		var prototype = attribute_scenes[x[0]]
 		var new_node = prototype.instantiate() if prototype is PackedScene else prototype.new()
 		var attr_name = x[0].substr(x[0].find("@@") + 2)
 		attr_name = attr_name.left(attr_name.find("("))
-		new_node._initialize(edited_object, name, attr_name, x[1], self)
+		
+		if new_node is ShowIfAttribute:
+			show_if_node = new_node
+			delayed_attribute = new_node
+			delayed_att_params = [name, attr_name, x[1]]
+			continue
+		
+		constructed_nodes.append(new_node)
 		attribute_nodes.append(new_node)
-		if new_node.has_method("_hides_property"):
-			var hides = new_node._hides_property()
-			if hides is bool:
-				prop_hidden = prop_hidden || hides
-
-			else:
-				for y in hides:
-					hidden_properties[y] = true
-
-		if new_node is EditorProperty:
-			if new_node.has_method(&"_edits_properties"):
-				add_property_editor_for_multiple_properties("", new_node._edits_properties(edited_object, name, attr_name, x[1]), new_node)
-
-			else:
-				add_property_editor_for_multiple_properties("", [name], new_node)
-
-		else:
-			add_custom_control(new_node)
-
+		
+		prop_hidden = _construct_node(new_node, name, prop_hidden, attr_name, x)
+		
+		if delayed_attribute != null:
+			prop_hidden = _construct_node(delayed_attribute, name, prop_hidden, attr_name, delayed_att_params)
+			delayed_attribute = null
+			delayed_att_params = []
+	
+	
+	if show_if_node != null:
+		show_if_node.child_nodes = constructed_nodes
+			
+	constructed_nodes = []
 	_on_edited_object_changed()
 	return prop_hidden || hidden_properties.has(name)
+
+
+func _construct_node(new_node, prop_name, is_prop_hidden, attr_name, params):
+	if new_node is ShowIfAttribute:
+		new_node._initialize(edited_object, params[0], params[1], params[2], self)
+	else:
+		new_node._initialize(edited_object, prop_name, attr_name, params[1], self)
+	attribute_nodes.append(new_node)
+	
+	if new_node.has_method("_hides_property"):
+		var hides = new_node._hides_property()
+		if hides is bool:
+			is_prop_hidden = is_prop_hidden || hides
+		else:
+			for y in hides:
+				hidden_properties[y] = true
+
+	if new_node is EditorProperty:
+		if new_node.has_method(&"_edits_properties"):
+			add_property_editor_for_multiple_properties("", new_node._edits_properties(edited_object, prop_name, attr_name, params[1]), new_node)
+		else:
+			add_property_editor_for_multiple_properties("", [prop_name], new_node)
+	else:
+		add_custom_control(new_node)
+	
+	return is_prop_hidden
 
 
 func _on_edited_object_changed(prop = ""):
