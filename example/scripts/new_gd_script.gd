@@ -24,6 +24,8 @@ extends Node2D
 # @@buttons(#009900, "Move(9, 20)", set_position(position + Vector2(9, 20)), "Reset", #990000, _reset())
 @export var var3 : Array[Resource]
 
+# @@show_if(var_enum == 2)
+@export var var7 := 0
 
 func _negative_message():
 	return "" if var1 >= 0 else "Negative values cause unpredictable behaviour."
