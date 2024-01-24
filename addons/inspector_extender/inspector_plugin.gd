@@ -41,8 +41,7 @@ var all_properties := []
 var hidden_properties := {}
 var original_edited_object : Object
 var edited_object : Object
-var show_if_attribute : Object = null
-var show_if_params = null
+var deferred_init_attributes : Array = []
 var constructed_nodes = []
 var script_prop_count := 0
 var curr_prop_count := 1
@@ -81,8 +80,7 @@ func _parse_begin(object):
 	curr_prop_count = 1
 	edited_object = object
 
-	show_if_attribute = null
-	show_if_params = []
+	deferred_init_attributes.clear()
 	var parse_found_prop := ""
 	var parse_found_comments := []
 	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
@@ -224,17 +222,16 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 		var attr_name = x[0].substr(x[0].find("@@") + 2)
 		attr_name = attr_name.left(attr_name.find("("))
 		
-		if new_node.has_method("_is_show_if_attribute"):
-			show_if_attribute = new_node
-			show_if_params = [name, attr_name, x[1]]
+		attribute_nodes.append(new_node)
+		constructed_nodes.append(new_node)
+		if new_node.has_method(&"_deferred_init") && new_node._deferred_init():
+			deferred_init_attributes.append([new_node, name, attr_name, x[1]])
 			# add container now so it is in the correct position
 			add_custom_control(new_node)
 			continue
-		
+
 		new_node._initialize(edited_object, name, attr_name, x[1], self)
-		attribute_nodes.append(new_node)
-		constructed_nodes.append(new_node)
-		if new_node.has_method("_hides_property"):
+		if new_node.has_method(&"_hides_property"):
 			var hides = new_node._hides_property()
 			if hides is bool:
 				prop_hidden = prop_hidden || hides
@@ -252,14 +249,6 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 
 		else:
 			add_custom_control(new_node)
-	
-	if show_if_attribute != null:
-		show_if_attribute.child_nodes = constructed_nodes
-		if !is_last_property:
-			show_if_attribute._initialize(edited_object, show_if_params[0], show_if_params[1], show_if_params[2], self)
-			attribute_nodes.append(show_if_attribute)
-			show_if_attribute = null
-			show_if_params = []
 
 	_on_edited_object_changed()
 	curr_prop_count += 1
@@ -267,12 +256,10 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 
 
 func _parse_end(object):
-	if show_if_attribute != null:
-		show_if_attribute._initialize(edited_object, show_if_params[0], show_if_params[1], show_if_params[2], self)
-		attribute_nodes.append(show_if_attribute)
-		
-		show_if_attribute = null
-		show_if_params = []
+	for x in deferred_init_attributes:
+		x[0]._initialize(edited_object, x[1], x[2], x[3], self)
+		attribute_nodes.append(x[0])
+
 		_on_edited_object_changed()
 
 
