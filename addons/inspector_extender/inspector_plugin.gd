@@ -57,18 +57,12 @@ func _init(plugin : EditorPlugin):
 
 
 func _can_handle(object):
+	_reset_state()
 	return object.get_script() != null
 
 
 func _parse_begin(object):
 	original_edited_object = object
-	if (
-		is_instance_valid(edited_object)
-		&& edited_object is Node
-		&& !edited_object.is_inside_tree()
-		&& !edited_object.get_script().is_tool()
-	):
-		edited_object.free()
 
 	# For params that call methods, create a new object in tool mode (or methods won't be there)
 	if !object.get_script().is_tool():
@@ -80,15 +74,10 @@ func _parse_begin(object):
 	curr_prop_count = 1
 	edited_object = object
 
-	deferred_init_attributes.clear()
 	var parse_found_prop := ""
 	var parse_found_comments := []
 	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
-	attribute_data.clear()
-	attribute_nodes.clear()
-	all_properties.clear()
-	hidden_properties.clear()
-
+	
 	for x in source.split("\n"):
 		if x == "": continue
 		if !x.unicode_at(0) in illegal_starts && ("@export " in x || "@export_" in x):
@@ -264,6 +253,9 @@ func _parse_end(object):
 
 
 func _on_edited_object_changed(prop = ""):
+	if edited_object == null:
+		return
+	
 	if prop != "":
 		edited_object.set(prop, original_edited_object[prop])
 
@@ -275,3 +267,23 @@ func _on_edited_object_changed(prop = ""):
 func _on_object_tree_exited():
 	if !edited_object.get_script().is_tool():
 		edited_object.free()
+
+
+func _reset_state() -> void:
+	if (
+		edited_object != null
+		and is_instance_valid(edited_object)
+		and edited_object is Node
+		and !edited_object.is_inside_tree()
+		and !edited_object.get_script().is_tool()
+	):
+		edited_object.free()
+
+	edited_object = null
+
+	deferred_init_attributes.clear()
+	attribute_data.clear()
+	attribute_nodes.clear()
+	all_properties.clear()
+	hidden_properties.clear()
+
