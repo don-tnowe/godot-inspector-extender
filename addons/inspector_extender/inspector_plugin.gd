@@ -101,7 +101,10 @@ func create_editable_copy(object):
 
 		if x["usage"] & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP) != 0:
 			continue
-
+		
+		if x["name"] == "resource_path":
+			continue
+		
 		new_object.set(x["name"], object[x["name"]])
 
 	return new_object
