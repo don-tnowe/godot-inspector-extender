@@ -63,7 +63,11 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 			var col_idx = for_properties.find(x["name"])
 			if col_idx != -1:
 				var split = x["hint_string"].split(":")
-				dtypes[col_idx] = split[1]
+				if split[1] == "":
+					dtypes[col_idx] = int(split[0])
+
+				else:
+					dtypes[col_idx] = split[1]
 
 		for i in cols.size():
 			cols[i] = cols[i].substr(prefix.length())
