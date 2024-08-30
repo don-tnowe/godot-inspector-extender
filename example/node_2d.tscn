@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://cavsxdd8nior7"]
 
-[ext_resource type="Script" path="res://example/scripts/new_gd_script.gd" id="1_nqiyy"]
+[ext_resource type="Script" path="res://example/scripts/new_gd_script_2.gd" id="1_teaur"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_08be5"]
 
@@ -15,7 +15,7 @@ metadata/_edit_vertical_guides_ = [-84.0]
 
 [node name="Node2D" type="Node2D" parent="." node_paths=PackedStringArray("selected_child")]
 position = Vector2(9, 20)
-script = ExtResource("1_nqiyy")
+script = ExtResource("1_teaur")
 selected_child = NodePath("Node2")
 var_enum = 1
 var4 = Array[Dictionary]([{

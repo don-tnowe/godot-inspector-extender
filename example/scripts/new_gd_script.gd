@@ -1,3 +1,4 @@
+class_name InspectorExtenderExampleScript
 extends Node2D
 
 # @@message_warning(_negative_message)

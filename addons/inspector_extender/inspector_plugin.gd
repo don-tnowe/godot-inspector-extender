@@ -43,8 +43,6 @@ var original_edited_object : Object
 var edited_object : Object
 var deferred_init_attributes : Array = []
 var constructed_nodes = []
-var script_prop_count := 0
-var curr_prop_count := 1
 
 var plugin : EditorPlugin
 var inspector : EditorInspector
@@ -56,28 +54,36 @@ func _init(plugin : EditorPlugin):
 	inspector.property_edited.connect(_on_edited_object_changed)
 
 
-func _can_handle(object):
+func _can_handle(object : Object):
 	_reset_state()
 	return object.get_script() != null
 
 
-func _parse_begin(object):
+func _parse_begin(object : Object):
 	original_edited_object = object
+
+	attribute_data.clear()
+	attribute_nodes.clear()
+	all_properties.clear()
+	hidden_properties.clear()
+	deferred_init_attributes.clear()
 
 	# For params that call methods, create a new object in tool mode (or methods won't be there)
 	if !object.get_script().is_tool():
 		object = create_editable_copy(object)
 
-	var source = object.get_script().source_code
-	# 1 less than the list size because it includes the script name
-	script_prop_count = object.get_script().get_script_property_list().size() - 1
-	curr_prop_count = 1
 	edited_object = object
+	_parse_single_script(object.get_script())
 
+
+func _parse_single_script(parse_script : Script):
+	if parse_script.get_base_script() != null:
+		_parse_single_script(parse_script.get_base_script())
+
+	var source : String = parse_script.source_code
 	var parse_found_prop := ""
 	var parse_found_comments := []
 	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
-	
 	for x in source.split("\n"):
 		if x == "": continue
 		if !x.unicode_at(0) in illegal_starts && ("@export " in x || "@export_" in x):
@@ -93,7 +99,7 @@ func _parse_begin(object):
 				parse_found_comments.append([k, get_params(x.substr(x.find("(")))])
 
 
-func create_editable_copy(object):
+func create_editable_copy(object : Object):
 	var new_object = object.get_script().new()
 	for x in object.get_property_list():
 		if x["usage"] == 0:
@@ -206,7 +212,6 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 	
 	if !attribute_data.has(name): return hidden_properties.has(name)
 	var prop_hidden := false
-	var is_last_property := curr_prop_count == script_prop_count
 	constructed_nodes = []
 	for x in attribute_data[name]:
 		var prototype = attribute_scenes[x[0]]
@@ -243,7 +248,6 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 			add_custom_control(new_node)
 
 	_on_edited_object_changed()
-	curr_prop_count += 1
 	return prop_hidden || hidden_properties.has(name)
 
 
@@ -289,4 +293,3 @@ func _reset_state() -> void:
 	attribute_nodes.clear()
 	all_properties.clear()
 	hidden_properties.clear()
-
