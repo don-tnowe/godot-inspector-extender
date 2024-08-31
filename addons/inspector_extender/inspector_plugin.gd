@@ -84,11 +84,15 @@ func _parse_single_script(parse_script : Script):
 	var parse_found_prop := ""
 	var parse_found_comments := []
 	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
-	for x in source.split("\n"):
+	var line_number = -1
+	var split_source = source.split("\n")
+	for x in split_source:
+		line_number += 1
 		if x == "": continue
 		if !x.unicode_at(0) in illegal_starts && ("@export " in x || "@export_" in x):
-			var prop_name = get_suffix(" var ", x)
+			var prop_name = get_suffix(" var ", x, line_number, split_source)
 			if prop_name == "": continue
+			#print(prop_name)
 
 			parse_found_prop = prop_name
 			attribute_data[prop_name] = parse_found_comments
@@ -116,48 +120,60 @@ func create_editable_copy(object : Object):
 	return new_object
 
 
-func get_suffix(to_find : String, line : String):
+func get_suffix(to_find: String, line: String, line_number: int, source: Array[String]) -> String:
 	var unclosed_quote := 0
-	var unclosed_quote_char := -1
+	var unclosed_quote_char := ''
 	var unclosed_paren := 0
 	var unclosed_brackets := 0
 	var unclosed_stache := 0
-
-	var string_chars_matched := 0
-
-	for i in line.length():
-		match line.unicode_at(i):
-			34, 39:
+	
+	var var_index := -1
+	var in_string := false
+	
+	for i in range(line.length()):
+		var c := line[i]
+		match c:
+			'"', "'":
 				if unclosed_quote == 0:
 					unclosed_quote = 1
-					unclosed_quote_char = line.unicode_at(i)
-
-				elif unclosed_quote_char == line.unicode_at(i):
+					unclosed_quote_char = c
+					in_string = true
+				elif c == unclosed_quote_char:
 					unclosed_quote = 0
-
-			40: unclosed_paren += 1
-			41: unclosed_paren -= 1
-			91: unclosed_brackets += 1
-			93: unclosed_brackets -= 1
-			123: unclosed_stache += 1
-			125: unclosed_stache -= 1
-			var other:
-				if (
-					unclosed_quote == 0 && unclosed_paren == 0
-					&& unclosed_brackets == 0 && unclosed_stache == 0
-					&& other == to_find.unicode_at(string_chars_matched)
-				):
-					string_chars_matched += 1
-					if string_chars_matched == to_find.length():
-						var result = line.substr(i + 1, line.find(" ", i + 1) - i - 1)
-						if result.ends_with(":"):
-							result = result.trim_suffix(":")
-						return result
-
-				else:
-					string_chars_matched = 0
-
-	return ""
+					in_string = false
+			'(': if not in_string: unclosed_paren += 1
+			')': if not in_string: unclosed_paren -= 1
+			'[': if not in_string: unclosed_brackets += 1
+			']': if not in_string: unclosed_brackets -= 1
+			'{': if not in_string: unclosed_stache += 1
+			'}': if not in_string: unclosed_stache -= 1
+		
+		if not in_string and line.substr(i, to_find.length()) == to_find:
+			var_index = i
+			break
+	
+	# Check if the declaration is incomplete
+	if unclosed_quote != 0 or unclosed_paren != 0 or unclosed_brackets != 0 or unclosed_stache != 0:
+		#print("WARN: Incomplete declaration detected: ", line)
+		if line_number == source.size() - 1: return ""
+		return get_suffix(to_find, line + source[line_number + 1], line_number + 1, source)
+	
+	if var_index == -1:
+		return ""
+	
+	var start_index := var_index + to_find.length()
+	var end_index := start_index
+	
+	while end_index < line.length():
+		if line[end_index] == ' ':
+			break
+		end_index += 1
+	
+	var result := line.substr(start_index, end_index - start_index).strip_edges()
+	if result.ends_with(":"):
+		result = result.trim_suffix(":")
+	
+	return result
 
 
 func get_params(string : String):
