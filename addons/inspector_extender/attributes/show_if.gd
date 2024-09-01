@@ -41,8 +41,12 @@ func _initialize(object, property, attribute_name, params, inspector_plugin):
 func _update_view():
 	if child_nodes.size() == 0: return
 	var shown = expression.execute([], object)
+	if !(shown is bool):
+		push_error("show_if: provided expression must return a bool value!")
+		return
+
 	await get_tree().process_frame
-	self.visible = shown
+	visible = shown
 
 
 func _hides_property(): return false
