@@ -127,7 +127,7 @@ func get_suffix(to_find : String, text : String, start_search_at : int = 0) -> S
 
 	var string_chars_matched := 0
 
-	for i in text.length():
+	for i in text.length() - start_search_at:
 		i += start_search_at
 		if unclosed_quote == 1:
 			# Ignore all characters inside " " and ' ', until a matching closing mark found.
