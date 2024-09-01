@@ -1,6 +1,6 @@
 extends InspectorExtenderExampleScript
 
-# @@message_warning(_negative_message)
+# @@message_warning(_negative_message("new_var1"))
 @export var new_var1 := 0
 
 # @@show_if(var1 < 100)

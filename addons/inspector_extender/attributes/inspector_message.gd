@@ -33,7 +33,7 @@ func _update_view():
 		text = text.call()
 
 	if text == null:
-		text = "!!! Message func must return a string!."
+		text = "Parse error: Message func must return a string!"
 
 	visible = text != ""
 	set_message(text)
