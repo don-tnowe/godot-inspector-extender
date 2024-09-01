@@ -51,14 +51,15 @@ var inspector : EditorInspector
 func _init(plugin : EditorPlugin):
 	self.plugin = plugin
 	inspector = plugin.get_editor_interface().get_inspector()
-	inspector.property_edited.connect(_on_edited_object_changed)
+	inspector.property_edited.connect(_on_edited_object_property_edited)
+	inspector.edited_object_changed.connect(_on_edited_object_changed)
+
+
+func _on_edited_object_changed():
+	_reset_state()
 
 
 func _can_handle(object : Object):
-	if object is EditorProperty:
-		return false
-
-	_reset_state()
 	return object.get_script() != null
 
 
@@ -257,7 +258,7 @@ func _parse_property(object, type, name, hint_type, hint_string, usage_flags, wi
 		else:
 			add_custom_control(new_node)
 
-	_on_edited_object_changed()
+	_on_edited_object_property_edited()
 	return prop_hidden || hidden_properties.has(name)
 
 
@@ -266,10 +267,10 @@ func _parse_end(object):
 		x[0]._initialize(edited_object, x[1], x[2], x[3], self)
 		attribute_nodes.append(x[0])
 
-		_on_edited_object_changed()
+		_on_edited_object_property_edited()
 
 
-func _on_edited_object_changed(prop = ""):
+func _on_edited_object_property_edited(prop = ""):
 	if edited_object == null:
 		return
 	
