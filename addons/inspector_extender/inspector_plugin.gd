@@ -55,6 +55,9 @@ func _init(plugin : EditorPlugin):
 
 
 func _can_handle(object : Object):
+	if object is EditorProperty:
+		return false
+
 	_reset_state()
 	return object.get_script() != null
 
