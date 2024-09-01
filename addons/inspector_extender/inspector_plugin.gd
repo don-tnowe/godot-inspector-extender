@@ -83,11 +83,13 @@ func _parse_single_script(parse_script : Script):
 	var source : String = parse_script.source_code
 	var parse_found_prop := ""
 	var parse_found_comments := []
-	var illegal_starts = ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
+	var illegal_starts := ["#".unicode_at(0), " ".unicode_at(0), "\t".unicode_at(0)]
+	var characters_parsed := 0
 	for x in source.split("\n"):
+		characters_parsed += x.length() + 1
 		if x == "": continue
 		if !x.unicode_at(0) in illegal_starts && ("@export " in x || "@export_" in x):
-			var prop_name = get_suffix(" var ", x)
+			var prop_name := get_suffix("var ", source, characters_parsed - x.length())
 			if prop_name == "": continue
 
 			parse_found_prop = prop_name
@@ -116,7 +118,7 @@ func create_editable_copy(object : Object):
 	return new_object
 
 
-func get_suffix(to_find : String, line : String):
+func get_suffix(to_find : String, text : String, start_search_at : int = 0) -> String:
 	var unclosed_quote := 0
 	var unclosed_quote_char := -1
 	var unclosed_paren := 0
@@ -125,15 +127,20 @@ func get_suffix(to_find : String, line : String):
 
 	var string_chars_matched := 0
 
-	for i in line.length():
-		match line.unicode_at(i):
-			34, 39:
-				if unclosed_quote == 0:
-					unclosed_quote = 1
-					unclosed_quote_char = line.unicode_at(i)
+	for i in text.length():
+		i += start_search_at
+		if unclosed_quote == 1:
+			# Ignore all characters inside " " and ' ', until a matching closing mark found.
+			if unclosed_quote_char == text.unicode_at(i):
+				unclosed_quote = 0
 
-				elif unclosed_quote_char == line.unicode_at(i):
-					unclosed_quote = 0
+			continue
+
+		match text.unicode_at(i):
+			# Opening " ", ' '
+			34, 39:
+				unclosed_quote = 1
+				unclosed_quote_char = text.unicode_at(i)
 
 			40: unclosed_paren += 1
 			41: unclosed_paren -= 1
@@ -149,7 +156,7 @@ func get_suffix(to_find : String, line : String):
 				):
 					string_chars_matched += 1
 					if string_chars_matched == to_find.length():
-						var result = line.substr(i + 1, line.find(" ", i + 1) - i - 1)
+						var result := text.substr(i + 1, text.find(" ", i + 1) - i - 1)
 						if result.ends_with(":"):
 							result = result.trim_suffix(":")
 						return result
